@@ -1,0 +1,32 @@
+A CDSW image with both Kudu and Impala ODBC Configured
+
+* Using
+
+    new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+    if(length(new.packages)) install.packages(new.packages)
+
+    library(DBI)
+    library(odbc)
+    library(dplyr)
+    library(implyr)
+
+    drv <- odbc::odbc()
+
+    impala <- src_impala(
+     drv = drv,
+     driver = "Impala ODBC Driver",
+     host = "host",
+     port = 21050,
+     database = "default",
+     uid = "username",
+     pwd = "password"
+    )
+
+* Build
+
+Builds are automated by https://hub.docker.com/r/phdata/phdata-cdsw/
+
+* Release
+
+Push a tag as X.Y, e.g. 1.0 or 1.1, then the automated build will kick off creating a container
+image at phdata/phdata-cdsw:release-X.Y
