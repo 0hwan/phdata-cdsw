@@ -26,7 +26,7 @@ RUN apt-get -y --allow-unauthenticated install libkuduclient0 libkuduclient-dev
 
 # Install some prereqs
 RUN apt-get update && \
-    apt-get install -y rpm2cpio curl sudo && \
+    apt-get install -y rpm2cpio curl sudo ksh && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -37,8 +37,42 @@ WORKDIR /tmp/unixODBC-2.3.4
 RUN CPPFLAGS="-DSIZEOF_LONG_INT=8" ./configure --prefix=/usr --libdir=/usr/lib64 --sysconfdir=/etc --enable-gui=no --enable-drivers=no --enable-iconv --with-iconv-char-enc=UTF8 --with-iconv-ucode-enc=UTF16LE --enable-stats=no 1> configure_std.log 2> configure_err.log && make 1> make_std.log 2> make_err.log && make install 1> makeinstall_std.log 2> makeinstall_err.log
 WORKDIR /
 
+# install teradata drivers
+ADD tdicu1610_16.10.00.00-2_all.deb /tdicu1610_16.10.00.00-2_all.deb
+ADD tdodbc1610_16.10.00.02-2_all.deb /tdodbc1610_16.10.00.02-2_all.deb
+RUN dpkg -i /tdicu1610_16.10.00.00-2_all.deb
+RUN /bin/ksh -c 'dpkg -i /tdodbc1610_16.10.00.02-2_all.deb'
+
+# create folders
+RUN mkdir /opt/teradata/client/ODBC_32 && mkdir /opt/teradata/client/ODBC_64
+
+# create symlinks
+RUN ln -s /opt/teradata/client/16.10/lib64 /opt/teradata/client/ODBC_64/lib && ln -s /opt/teradata/client/16.10/odbc_64/locale /opt/teradata/client/ODBC_64/locale && ln -s /opt/teradata/client/16.10/include /opt/teradata/client/ODBC_64/include && ln -s /opt/teradata/client/16.10/lib /opt/teradata/client/ODBC_32/lib && ln -s /opt/teradata/client/16.10/odbc_32/locale /opt/teradata/client/ODBC_32/locale && ln -s /opt/teradata/client/16.10/include /opt/teradata/client/ODBC_32/include && ln -s /opt/teradata/client/16.10/include /opt/teradata/client/16.10/odbc_64/include && ln -s /opt/teradata/client/16.10/lib64 /opt/teradata/client/16.10/odbc_64/lib && ln -s /opt/teradata/client/16.10/include /opt/teradata/client/16.10/odbc_32/include && ln -s /opt/teradata/client/16.10/lib /opt/teradata/client/16.10/odbc_32/lib && ln -s /opt/teradata/client/16.10/lib/ivtrc27.so /opt/teradata/client/16.10/lib/odbctrac.so && ln -s /opt/teradata/client/16.10/lib64/ddtrc27.so /opt/teradata/client/16.10/lib64/odbctrac.so && ln -s /opt/teradata/client/16.10/etc/.ttupath_1610_bash.env /opt/teradata/client/etc/ttu_bash.env && ln -s /opt/teradata/client/16.10/etc/.ttupath_1610_csh.env /opt/teradata/client/etc/ttu_csh.env && rm /usr/lib64/libodbcinst.so && ln -s /opt/teradata/client/16.10/lib64/libodbcinst.so /usr/lib64/libodbcinst.so && rm /usr/lib64/libodbc.so && ln -s /opt/teradata/client/16.10/lib64/libodbc.so /usr/lib64/libodbc.so
+
+# create environment variables
+ENV ODBCINI=/opt/teradata/client/16.10/odbc_64/odbc.ini LD_LIBRARY_PATH=/opt/teradata/client/ODBC_64/lib
+
+# create odbc files
+ADD etc_odbc.ini /etc/odbc.ini
+ADD 1610_odbc32_odbc.ini /opt/teradata/client/16.10/odbc_32/odbc.ini
+ADD 1610_odbc64_odbc.ini /opt/teradata/client/16.10/odbc_64/odbc.ini
+ADD odbc32_odbc.ini /opt/teradata/client/ODBC_32/odbc.ini
+ADD odbc64_odbc.ini /opt/teradata/client/ODBC_64/odbc.ini
+ADD etc_odbcinst.ini /etc/odbcinst.ini
+ADD 1610_odbc32_odbcinst.ini /opt/teradata/client/16.10/odbc_32/odbcinst.ini
+ADD 1610_odbc64_odbcinst.ini /opt/teradata/client/16.10/odbc_64/odbcinst.ini
+ADD odbc32_odbcinst.ini /opt/teradata/client/ODBC_32/odbcinst.ini
+ADD odbc64_odbcinst.ini /opt/teradata/client/ODBC_64/odbcinst.ini
+ADD genuine_TTU /opt/teradata/client/16.10/.genuine_TTU
+RUN touch /opt/teradata/client/16.10/ttu_softlinks_yes_1610 && touch /opt/teradata/client/16.10/ttu_updateETC_1610
+RUN chmod 4111 /opt/teradata/client/16.10/.genuine_TTU
+
 # Make impala odbc available
 COPY odbcinst.ini /etc/
 
 # Give cdsw user sudo
 RUN echo "cdsw    ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+# install teradata python library
+RUN pip2 install teradata
+RUN pip3 install teradata
