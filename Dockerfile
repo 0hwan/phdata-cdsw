@@ -67,9 +67,6 @@ ADD genuine_TTU /opt/teradata/client/16.10/.genuine_TTU
 RUN touch /opt/teradata/client/16.10/ttu_softlinks_yes_1610 && touch /opt/teradata/client/16.10/ttu_updateETC_1610
 RUN chmod 4111 /opt/teradata/client/16.10/.genuine_TTU
 
-# Make impala odbc available
-COPY odbcinst.ini /etc/
-
 # Give cdsw user sudo
 RUN echo "cdsw    ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
 
