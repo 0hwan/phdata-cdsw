@@ -71,5 +71,5 @@ RUN chmod 4111 /opt/teradata/client/16.10/.genuine_TTU
 RUN echo "cdsw    ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 # install teradata python library
-RUN pip2 install teradata
-RUN pip3 install teradata
+#RUN pip2 install teradata
+#RUN pip3 install teradata
