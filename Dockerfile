@@ -41,6 +41,7 @@ WORKDIR /
 ADD tdicu1610_16.10.00.00-2_all.deb /tdicu1610_16.10.00.00-2_all.deb
 ADD tdodbc1610_16.10.00.02-2_all.deb /tdodbc1610_16.10.00.02-2_all.deb
 RUN dpkg -i /tdicu1610_16.10.00.00-2_all.deb
+# teradata odbc README file specifies running the tdodbc installer using the korn shell:
 RUN /bin/ksh -c 'dpkg -i /tdodbc1610_16.10.00.02-2_all.deb'
 
 # create folders
