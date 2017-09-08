@@ -74,3 +74,15 @@ RUN echo "cdsw    ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
 # install teradata python library
 #RUN pip2 install teradata
 #RUN pip3 install teradata
+
+# Install Oracle basic driver and odbc driver v12.2
+ADD instantclient-odbc-linux.x64-12.2.0.1.0.zip /instantclient-odbc-linux.x64-12.2.0.1.0.zip
+ADD instantclient-basic-linux.x64-12.2.0.1.0.zip /instantclient-basic-linux.x64-12.2.0.1.0.zip
+RUN unzip /instantclient-odbc-linux.x64-12.2.0.1.0.zip -d /opt/oracle/
+RUN unzip /instantclient-basic-linux.x64-12.2.0.1.0.zip -d /opt/oracle/
+RUN ln -s /opt/oracle/instantclient_12_2/libclntsh.so.12.1 /opt/oracle/instantclient_12_2/libclntsh.so && ln -s /opt/oracle/instantclient_12_2/libocci.so.12.1 /opt/oracle/instantclient_12_2/libocci.so
+RUN apt-get install libaio1
+ENV LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
+RUN /opt/oracle/instantclient_12_2/odbc_update_ini.sh / /opt/oracle/instantclient_12_2 "Oracle 12c ODBC driver" OracleODBC-12c /etc/odbc.ini
+
+
