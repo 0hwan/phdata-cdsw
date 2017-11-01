@@ -84,6 +84,18 @@ RUN apt-get install libaio1
 ENV LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
 RUN /opt/oracle/instantclient_12_2/odbc_update_ini.sh / /opt/oracle/instantclient_12_2 "Oracle 12c ODBC driver" OracleODBC-12c /etc/odbc.ini
 
+# get maven 3.5.2
+RUN curl -o /tmp/apache-maven-3.5.2.tar.gz http://archive.apache.org/dist/maven/maven-3/3.5.2/binaries/apache-maven-3.5.2-bin.tar.gz
+
+# verify checksum
+RUN echo "948110de4aab290033c23bf4894f7d9a /tmp/apache-maven-3.5.2.tar.gz" | md5sum -c
+
+# install maven
+RUN tar xzf /tmp/apache-maven-3.5.2.tar.gz -C /opt/
+RUN ln -s /opt/apache-maven-3.5.2 /opt/maven
+RUN ln -s /opt/maven/bin/mvn /usr/local/bin
+RUN rm -f /tmp/apache-maven-3.5.2.tar.gz
+ENV MAVEN_HOME /opt/maven
 
 # install nvidia drivers to support GPUs
 # from: https://www.cloudera.com/documentation/data-science-workbench/latest/topics/cdsw_gpu.html#cdsw_gpu
