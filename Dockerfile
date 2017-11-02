@@ -150,8 +150,3 @@ RUN unzip /tmp/protoc-3.3.0-linux-x86_64.zip -d /tmp/protoc3
 # move protoc to /usr/local/bin/ and /usr/local/include
 RUN mv /tmp/protoc3/bin/* /usr/local/bin/
 RUN mv protoc3/include/* /usr/local/include/
-
-# Optional: change owner
-sudo chwon [user] /usr/local/bin/protoc
-sudo chwon -R [user] /usr/local/include/google
-
