@@ -140,3 +140,18 @@ LABEL com.nvidia.cudnn.version="${CUDNN_VERSION}"
 RUN apt-get update && apt-get install -y --no-install-recommends \
             libcudnn6=$CUDNN_VERSION-1+cuda8.0 && \
     rm -rf /var/lib/apt/lists/*
+
+
+# get protoc 3.3.0
+WORKDIR /tmp
+RUN curl -OL https://github.com/google/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip
+RUN unzip /tmp/protoc-3.3.0-linux-x86_64.zip -d /tmp/protoc3
+
+# move protoc to /usr/local/bin/ and /usr/local/include
+RUN mv /tmp/protoc3/bin/* /usr/local/bin/
+RUN mv protoc3/include/* /usr/local/include/
+
+# Optional: change owner
+sudo chwon [user] /usr/local/bin/protoc
+sudo chwon -R [user] /usr/local/include/google
+
