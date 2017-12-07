@@ -50,7 +50,8 @@ RUN mkdir /opt/teradata/client/ODBC_32 && mkdir /opt/teradata/client/ODBC_64
 RUN ln -s /opt/teradata/client/16.10/lib64 /opt/teradata/client/ODBC_64/lib && ln -s /opt/teradata/client/16.10/odbc_64/locale /opt/teradata/client/ODBC_64/locale && ln -s /opt/teradata/client/16.10/include /opt/teradata/client/ODBC_64/include && ln -s /opt/teradata/client/16.10/lib /opt/teradata/client/ODBC_32/lib && ln -s /opt/teradata/client/16.10/odbc_32/locale /opt/teradata/client/ODBC_32/locale && ln -s /opt/teradata/client/16.10/include /opt/teradata/client/ODBC_32/include && ln -s /opt/teradata/client/16.10/include /opt/teradata/client/16.10/odbc_64/include && ln -s /opt/teradata/client/16.10/lib64 /opt/teradata/client/16.10/odbc_64/lib && ln -s /opt/teradata/client/16.10/include /opt/teradata/client/16.10/odbc_32/include && ln -s /opt/teradata/client/16.10/lib /opt/teradata/client/16.10/odbc_32/lib && ln -s /opt/teradata/client/16.10/lib/ivtrc27.so /opt/teradata/client/16.10/lib/odbctrac.so && ln -s /opt/teradata/client/16.10/lib64/ddtrc27.so /opt/teradata/client/16.10/lib64/odbctrac.so && ln -s /opt/teradata/client/16.10/etc/.ttupath_1610_bash.env /opt/teradata/client/etc/ttu_bash.env && ln -s /opt/teradata/client/16.10/etc/.ttupath_1610_csh.env /opt/teradata/client/etc/ttu_csh.env && rm /usr/lib64/libodbcinst.so && ln -s /opt/teradata/client/16.10/lib64/libodbcinst.so /usr/lib64/libodbcinst.so && rm /usr/lib64/libodbc.so && ln -s /opt/teradata/client/16.10/lib64/libodbc.so /usr/lib64/libodbc.so
 
 # create environment variables
-ENV ODBCINI=/opt/teradata/client/16.10/odbc_64/odbc.ini LD_LIBRARY_PATH=/opt/teradata/client/ODBC_64/lib
+ENV ODBCINI=/opt/teradata/client/16.10/odbc_64/odbc.ini
+ENV LD_LIBRARY_PATH=/opt/teradata/client/ODBC_64/lib:$LD_LIBRARY_PATH
 
 # create odbc files
 ADD etc_odbc.ini /etc/odbc.ini
@@ -81,7 +82,7 @@ RUN unzip /tmp/instantclient-odbc-linux.x64-12.2.0.1.0.zip -d /opt/oracle/
 RUN unzip /tmp/instantclient-basic-linux.x64-12.2.0.1.0.zip -d /opt/oracle/
 RUN ln -s /opt/oracle/instantclient_12_2/libclntsh.so.12.1 /opt/oracle/instantclient_12_2/libclntsh.so && ln -s /opt/oracle/instantclient_12_2/libocci.so.12.1 /opt/oracle/instantclient_12_2/libocci.so
 RUN apt-get install libaio1
-ENV LD_LIBRARY_PATH=/opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH /opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
 RUN /opt/oracle/instantclient_12_2/odbc_update_ini.sh / /opt/oracle/instantclient_12_2 "Oracle 12c ODBC driver" OracleODBC-12c /etc/odbc.ini
 
 # get maven 3.5.2
@@ -129,8 +130,8 @@ RUN echo "/usr/local/cuda/lib64" >> /etc/ld.so.conf.d/cuda.conf && \
 RUN echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
     echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
 
-ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
-ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64
+ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:$PATH
+ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64:$LD_LIBRARY_PATH
 
 RUN echo "deb http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/nvidia-ml.list
 
