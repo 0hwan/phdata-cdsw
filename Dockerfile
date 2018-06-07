@@ -19,10 +19,10 @@
 FROM docker.repository.cloudera.com/cdsw/engine:4
 
 # Install kudu repo
-RUN curl -o /etc/apt/sources.list.d/cloudera.list http://archive.cloudera.com/kudu/ubuntu/xenial/amd64/kudu/cloudera.list
-RUN ls -al /etc/apt/sources.list.d/
-RUN apt-get update
-RUN apt-get -y --allow-unauthenticated install libkuduclient0 libkuduclient-dev
+RUN curl -o /etc/apt/sources.list.d/cloudera.list http://archive.cloudera.com/kudu/ubuntu/xenial/amd64/kudu/cloudera.list && \
+    ls -al /etc/apt/sources.list.d/ && \
+    apt-get update && \
+    apt-get -y --allow-unauthenticated install libkuduclient0 libkuduclient-dev
 
 # Install some prereqs
 RUN apt-get update && \
@@ -65,8 +65,9 @@ ADD 1610_odbc64_odbcinst.ini /opt/teradata/client/16.10/odbc_64/odbcinst.ini
 ADD odbc32_odbcinst.ini /opt/teradata/client/ODBC_32/odbcinst.ini
 ADD odbc64_odbcinst.ini /opt/teradata/client/ODBC_64/odbcinst.ini
 ADD genuine_TTU /opt/teradata/client/16.10/.genuine_TTU
-RUN touch /opt/teradata/client/16.10/ttu_softlinks_yes_1610 && touch /opt/teradata/client/16.10/ttu_updateETC_1610
-RUN chmod 4111 /opt/teradata/client/16.10/.genuine_TTU
+RUN touch /opt/teradata/client/16.10/ttu_softlinks_yes_1610 && \
+    touch /opt/teradata/client/16.10/ttu_updateETC_1610 && \
+    chmod 4111 /opt/teradata/client/16.10/.genuine_TTU
 
 # Give cdsw user sudo
 RUN echo "cdsw    ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
@@ -78,10 +79,10 @@ RUN echo "cdsw    ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
 # Install Oracle basic driver and odbc driver v12.2
 ADD instantclient-odbc-linux.x64-12.2.0.1.0.zip /tmp/instantclient-odbc-linux.x64-12.2.0.1.0.zip
 ADD instantclient-basic-linux.x64-12.2.0.1.0.zip /tmp/instantclient-basic-linux.x64-12.2.0.1.0.zip
-RUN unzip /tmp/instantclient-odbc-linux.x64-12.2.0.1.0.zip -d /opt/oracle/
-RUN unzip /tmp/instantclient-basic-linux.x64-12.2.0.1.0.zip -d /opt/oracle/
-RUN ln -s /opt/oracle/instantclient_12_2/libclntsh.so.12.1 /opt/oracle/instantclient_12_2/libclntsh.so && ln -s /opt/oracle/instantclient_12_2/libocci.so.12.1 /opt/oracle/instantclient_12_2/libocci.so
-RUN apt-get install libaio1
+RUN unzip /tmp/instantclient-odbc-linux.x64-12.2.0.1.0.zip -d /opt/oracle/ && \
+    unzip /tmp/instantclient-basic-linux.x64-12.2.0.1.0.zip -d /opt/oracle/ && \
+    ln -s /opt/oracle/instantclient_12_2/libclntsh.so.12.1 /opt/oracle/instantclient_12_2/libclntsh.so && ln -s /opt/oracle/instantclient_12_2/libocci.so.12.1 /opt/oracle/instantclient_12_2/libocci.so && \
+    apt-get install libaio1
 ENV LD_LIBRARY_PATH /opt/oracle/instantclient_12_2:$LD_LIBRARY_PATH
 RUN /opt/oracle/instantclient_12_2/odbc_update_ini.sh / /opt/oracle/instantclient_12_2 "Oracle 12c ODBC driver" OracleODBC-12c /etc/odbc.ini
 
@@ -92,10 +93,10 @@ RUN curl -o /tmp/apache-maven-3.5.2.tar.gz http://archive.apache.org/dist/maven/
 RUN echo "948110de4aab290033c23bf4894f7d9a /tmp/apache-maven-3.5.2.tar.gz" | md5sum -c
 
 # install maven
-RUN tar xzf /tmp/apache-maven-3.5.2.tar.gz -C /opt/
-RUN ln -s /opt/apache-maven-3.5.2 /opt/maven
-RUN ln -s /opt/maven/bin/mvn /usr/local/bin
-RUN rm -f /tmp/apache-maven-3.5.2.tar.gz
+RUN tar xzf /tmp/apache-maven-3.5.2.tar.gz -C /opt/ && \
+    ln -s /opt/apache-maven-3.5.2 /opt/maven && \
+    ln -s /opt/maven/bin/mvn /usr/local/bin && \
+    rm -f /tmp/apache-maven-3.5.2.tar.gz
 ENV MAVEN_HOME /opt/maven
 
 # install nvidia drivers to support GPUs
@@ -145,9 +146,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # get protoc 3.3.0
 WORKDIR /tmp
-RUN curl -OL https://github.com/google/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip
-RUN unzip /tmp/protoc-3.3.0-linux-x86_64.zip -d /tmp/protoc3
+RUN curl -OL https://github.com/google/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip && \
+    unzip /tmp/protoc-3.3.0-linux-x86_64.zip -d /tmp/protoc3
 
 # move protoc to /usr/local/bin/ and /usr/local/include
-RUN mv /tmp/protoc3/bin/* /usr/local/bin/
-RUN mv protoc3/include/* /usr/local/include/
+RUN mv /tmp/protoc3/bin/* /usr/local/bin/ && \
+    mv protoc3/include/* /usr/local/include/
