@@ -16,7 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-FROM docker.repository.cloudera.com/cdsw/engine:4
+FROM docker.repository.cloudera.com/cdsw/engine:6
 
 # Install some prereqs
 RUN apt-get update && \
@@ -107,5 +107,17 @@ RUN curl -OL https://github.com/google/protobuf/releases/download/v3.3.0/protoc-
 # move protoc to /usr/local/bin/ and /usr/local/include
 RUN mv /tmp/protoc3/bin/* /usr/local/bin/ && \
     mv protoc3/include/* /usr/local/include/
+
+###
+# install odbc drivers
+
+# install MS SQL 13.1 ODBC driver
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
+RUN apt-get update && \
+    ACCEPT_EULA=Y apt-get install msodbcsql
+
+# Make odbc drivers available
+COPY odbcinst.ini /etc/
 
 WORKDIR /home/cdsw
