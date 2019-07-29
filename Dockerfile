@@ -16,16 +16,14 @@
 # specific language governing permissions and limitations
 # under the License.
 
-FROM docker.repository.cloudera.com/cdsw/engine:6
+FROM docker.repository.cloudera.com/cdsw/engine:8
 
 # Install some prereqs
 RUN apt-get update && \
     apt-get install -y curl sudo ksh && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Give cdsw user sudo
-RUN echo "cdsw    ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
+    rm -rf /var/lib/apt/lists/* && \
+    echo "cdsw    ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 ###
 # Install kudu repo
@@ -35,19 +33,13 @@ RUN curl -o /etc/apt/sources.list.d/cloudera.list http://archive.cloudera.com/ku
     apt-get -y --allow-unauthenticated install libkuduclient0 libkuduclient-dev
 
 ###
-# install maven
-
-# get maven 3.5.2
-RUN curl -o /tmp/apache-maven-3.5.2.tar.gz http://archive.apache.org/dist/maven/maven-3/3.5.2/binaries/apache-maven-3.5.2-bin.tar.gz
-
-# verify checksum
-RUN echo "948110de4aab290033c23bf4894f7d9a /tmp/apache-maven-3.5.2.tar.gz" | md5sum -c
-
-# install 
-RUN tar xzf /tmp/apache-maven-3.5.2.tar.gz -C /opt/ && \
-    ln -s /opt/apache-maven-3.5.2 /opt/maven && \
-    ln -s /opt/maven/bin/mvn /usr/local/bin && \
-    rm -f /tmp/apache-maven-3.5.2.tar.gz
+# install maven 3.5.2
+RUN curl -o /tmp/apache-maven-3.5.2.tar.gz http://archive.apache.org/dist/maven/maven-3/3.5.2/binaries/apache-maven-3.5.2-bin.tar.gz && \
+    echo "948110de4aab290033c23bf4894f7d9a /tmp/apache-maven-3.5.2.tar.gz" | md5sum -c && \
+    tar xzf /tmp/apache-maven-3.5.2.tar.gz -C /opt/ && \
+        ln -s /opt/apache-maven-3.5.2 /opt/maven && \
+        ln -s /opt/maven/bin/mvn /usr/local/bin && \
+        rm -f /tmp/apache-maven-3.5.2.tar.gz
 ENV MAVEN_HOME /opt/maven
 
 ###
@@ -62,7 +54,7 @@ RUN NVIDIA_GPGKEY_SUM=d1be581509378368edeec8c1eb2958702feedf3bc3d17011adbf24efac
     echo "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64 /" > /etc/apt/sources.list.d/cuda.list
 
 ENV CUDA_VERSION 9.0.176
-    LABEL com.nvidia.cuda.version="${CUDA_VERSION}"
+LABEL com.nvidia.cuda.version="${CUDA_VERSION}"
 
 ENV CUDA_PKG_VERSION 9-0=$CUDA_VERSION-1
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -79,9 +71,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 RUN echo "/usr/local/cuda/lib64" >> /etc/ld.so.conf.d/cuda.conf && \
-    ldconfig
-
-RUN echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
+    ldconfig && \
+    echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf && \
     echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
 
 ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
@@ -102,10 +93,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # download and unpack
 WORKDIR /tmp
 RUN curl -OL https://github.com/google/protobuf/releases/download/v3.3.0/protoc-3.3.0-linux-x86_64.zip && \
-    unzip /tmp/protoc-3.3.0-linux-x86_64.zip -d /tmp/protoc3
-
-# move protoc to /usr/local/bin/ and /usr/local/include
-RUN mv /tmp/protoc3/bin/* /usr/local/bin/ && \
+    unzip /tmp/protoc-3.3.0-linux-x86_64.zip -d /tmp/protoc3 && \
+    mv /tmp/protoc3/bin/* /usr/local/bin/ && \
     mv protoc3/include/* /usr/local/include/
 
 ###
@@ -113,9 +102,23 @@ RUN mv /tmp/protoc3/bin/* /usr/local/bin/ && \
 
 # install MS SQL 13.1 ODBC driver
 RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
-    curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
-RUN apt-get update && \
+    curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list > /etc/apt/sources.list.d/mssql-release.list && \
+    apt-get update && \
     ACCEPT_EULA=Y apt-get install msodbcsql
+
+# Install RStudio
+RUN apt-get update && apt-get dist-upgrade -y && \
+    apt-get install -y --no-install-recommends \
+    libclang-dev \
+    lsb-release \
+    psmisc \
+    sudo && \
+    wget https://download2.rstudio.org/server/trusty/amd64/rstudio-server-1.2.1335-amd64.deb && \
+    dpkg -i rstudio-server-1.2.1335-amd64.deb && \
+    R --no-save -e 'install.packages("sparklyr")'
+COPY rserver.conf.template /etc/rstudio/rserver.conf.template
+COPY rstudio-cdsw /usr/local/bin/rstudio-cdsw
+RUN chmod +x /usr/local/bin/rstudio-cdsw
 
 # Make odbc drivers available
 COPY odbcinst.ini /etc/
